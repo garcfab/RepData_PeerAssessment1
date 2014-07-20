@@ -13,6 +13,8 @@ output: html_document
 1. Setting working directory
 ```{r}
 setwd('/Users/fabian/Dropbox/Coursera/RepData_PeerAssessment1')
+library(ggplot2)
+library(lattice)
 ````
 
 2. Unzipping data
@@ -37,29 +39,110 @@ activity$date <- as.Date(activity$date)
 
 6. New dataframe summing steps over each day
 ```{r}
-dayly_data <- aggregate(formula = steps ~ date, data = activity, FUN = sum, na.rm = T)
+daily_data <- aggregate(formula = steps ~ date, data = activity, FUN = sum, na.rm = T)
 ```
 
-6. Histogram of the total number of steps taken each day
+7. Histogram of the total number of steps taken each day
 ```{r}
-hist(dayly_data$steps, main="Mean of steps per day", xlab="# of steps")
+hist <- qplot(x=date, y=steps,
+      data=subset(activity, complete.cases(activity)),
+      stat='summary', fun.y=sum, geom='bar') +
+  labs(title='Figure 1: Number of steps taken daily\n',
+       y='Total steps per day', x='Date')
+plot(hist)
 ```
 
 ## What is mean total number of steps taken per day?
-6. Mean of steps per day
+1. Mean of steps per day
 ```{r}
-mean(dayly_data$steps, na.rm=TRUE)
+mean(daily_data$steps, na.rm=TRUE)
 ```
-7. Median of steps per day
+2. Median of steps per day
 ```{r}
-median(dayly_data$steps, na.rm=TRUE)
+median(daily_data$steps, na.rm=TRUE)
 ```
 ## What is the average daily activity pattern?
-
-
+1. New data frame with the mean of steps per interval across the days
+```{r}
+interval_frame <- aggregate(formula=steps~interval, data=activity, FUN=mean, na.rm=TRUE)
+```
+2. time series plot  of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+```{r}
+qplot(interval_frame$interval, interval_frame$steps, geom = c("line"), main = "Figure 2: Steps taken (average) per interval across the days", xlab = "interval", ylab = "average of steps")
+```
+3. 
+```{r}
+interval_max_steps <- interval_frame[which(interval_frame$steps==max(interval_frame$steps)),]
+interval_max_steps # Interval 835
+```
 
 ## Imputing missing values
+1. There are missing values in the step variable.
+```{r}
+total_NAs <- sum(!complete.cases(activity))
+total_NAs
+step_NAs <- sum(is.na(activity$steps))
+step_NAs 
+```
+2. Previously, we created a dataset containing the average of steps per interval across the days. We are going to use this dataframe merging it to the activity dataset. Thus, we are going to use the mean to input the missing data. 
 
+```{r}
+inputted_df <- merge(x = activity, y = interval_frame, by = "interval")
+head(inputted_df)
+```
+In this dataframe, we have a step.x column an step.y column. Now, we are going to create a new variable named steps with the average of the interval for the missing values of the steps.x column
+```{r}
+inputted_df$steps = NA
+inputted_df$steps[is.na(inputted_df$steps.x)] = inputted_df$steps.y[is.na(inputted_df$steps.x)]
+head(inputted_df)
+```
 
+```{r}
+inputted_df$steps[!is.na(inputted_df$steps.x)] = inputted_df$steps.x[!is.na(inputted_df$steps.x)]
+head(inputted_df)
+```
+Finally, we round the steps variable to 0 digits and delete step.x and step.y variables.
+```{r}
+inputted_df$steps <- round(inputted_df$steps,0)
+inputted_df$steps.x  <- NULL
+inputted_df$steps.y  <- NULL
+head(inputted_df)
+```
+4. Histogram using the imputted dataframe
+```{r}
+hist_inputted <- qplot(x=date, y=steps,
+      data=inputted_df,
+      stat='summary', fun.y=sum, geom='bar') +
+  labs(title='Figure 3: Number of steps taken daily (imputed data)\n',
+       y='Total steps per day', x='Date')
+plot(hist_inputted)
+```
 
+5. Mean and median of steps after the imputation.
+```{r}
+daily_data2 <- aggregate(formula = steps ~ date, data = inputted_df, FUN = sum, na.rm = T)
+mean(daily_data2$steps, na.rm=TRUE)
+```
+```{r}
+median(daily_data2$steps, na.rm=TRUE)
+```
 ## Are there differences in activity patterns between weekdays and weekends?
+First, we create a new column identifying whether the date is weekday or workday.
+```{r}
+inputted_df$day = weekdays(inputted_df$date)
+inputted_df$workday <- 1
+inputted_df$workday[inputted_df$day == "Sunday" ] = 0
+inputted_df$workday[inputted_df$day == "Saturday" ] = 0
+inputted_df$workday <- factor(inputted_df$workday, labels = c("Weekend", "Weekday"))
+head(inputted_df, n = 10)
+````
+Now the histogram:
+```{r}
+interval_frame2 <- aggregate(formula=steps~interval+workday, data=inputted_df, FUN=mean, na.rm=TRUE)
+xyplot(steps ~ interval | workday, interval_frame2, type="l", main = "Figure 4: Steps taken (average) per interval across the days ")
+```
+
+It seems that there is overall more activity on the weekends. The number of steps (average) per interval is larger on weekends than on weekdays. 
+```{r}
+tapply(interval_frame2$steps, interval_frame2$workday, mean)
+```
