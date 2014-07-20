@@ -10,11 +10,12 @@ output: html_document
 
 ## Loading and preprocessing the data
 
-1. Setting working directory
+1. Setting working directory, loading graphic libraries and changing some knitr options
 ```{r}
 setwd('/Users/fabian/Dropbox/Coursera/RepData_PeerAssessment1')
 library(ggplot2)
 library(lattice)
+knitr::opts_chunk$set(tidy=FALSE, fig.path='figures/')
 ````
 
 2. Unzipping data
@@ -43,7 +44,7 @@ daily_data <- aggregate(formula = steps ~ date, data = activity, FUN = sum, na.r
 ```
 
 7. Histogram of the total number of steps taken each day
-```{r}
+```{r Figure1}
 hist <- qplot(x=date, y=steps,
       data=subset(activity, complete.cases(activity)),
       stat='summary', fun.y=sum, geom='bar') +
@@ -67,7 +68,7 @@ median(daily_data$steps, na.rm=TRUE)
 interval_frame <- aggregate(formula=steps~interval, data=activity, FUN=mean, na.rm=TRUE)
 ```
 2. time series plot  of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r}
+```{r Figure2}
 qplot(interval_frame$interval, interval_frame$steps, geom = c("line"), main = "Figure 2: Steps taken (average) per interval across the days", xlab = "interval", ylab = "average of steps")
 ```
 3. 
@@ -109,7 +110,7 @@ inputted_df$steps.y  <- NULL
 head(inputted_df)
 ```
 4. Histogram using the imputted dataframe
-```{r}
+```{r Figure3}
 hist_inputted <- qplot(x=date, y=steps,
       data=inputted_df,
       stat='summary', fun.y=sum, geom='bar') +
@@ -137,7 +138,7 @@ inputted_df$workday <- factor(inputted_df$workday, labels = c("Weekend", "Weekda
 head(inputted_df, n = 10)
 ````
 Now the histogram:
-```{r}
+```{r Figure4}
 interval_frame2 <- aggregate(formula=steps~interval+workday, data=inputted_df, FUN=mean, na.rm=TRUE)
 xyplot(steps ~ interval | workday, interval_frame2, type="l", main = "Figure 4: Steps taken (average) per interval across the days ")
 ```
