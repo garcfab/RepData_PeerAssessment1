@@ -1,6 +1,6 @@
 ---
 title: "Assigment 1"
-author: "Fabián García"
+author: "Fabi??n Garc??a"
 date: "July 17, 2014"
 output: html_document
 ---
@@ -30,19 +30,29 @@ activity <- read.csv('activity.csv')
 head(activity)
 ```
 
-5. Histogram of the total number of steps taken each day
+5. Changing the class of date column
 ```{r}
-hist(activity$steps)
+activity$date <- as.Date(activity$date)
+```
+
+6. New dataframe summing steps over each day
+```{r}
+dayly_data <- aggregate(formula = steps ~ date, data = activity, FUN = sum, na.rm = T)
+```
+
+6. Histogram of the total number of steps taken each day
+```{r}
+hist(dayly_data$steps, main="Mean of steps per day", xlab="# of steps")
 ```
 
 ## What is mean total number of steps taken per day?
 6. Mean of steps per day
 ```{r}
-mean(activity$steps, na.rm=TRUE)
+mean(dayly_data$steps, na.rm=TRUE)
 ```
 7. Median of steps per day
 ```{r}
-median(activity$steps, na.rm=TRUE)
+median(dayly_data$steps, na.rm=TRUE)
 ```
 ## What is the average daily activity pattern?
 
