@@ -1,0 +1,55 @@
+---
+title: "Assigment 1"
+author: "Fabián García"
+date: "July 17, 2014"
+output: html_document
+---
+
+# Reproducible Research: Peer Assessment 1
+
+
+## Loading and preprocessing the data
+
+1. Setting working directory
+```{r}
+setwd('/Users/fabian/Dropbox/Coursera/RepData_PeerAssessment1')
+````
+
+2. Unzipping data
+```{r}
+unzip('activity.zip')
+```
+
+3. Loading data
+```{r}
+activity <- read.csv('activity.csv')
+```
+
+4. Checking activity content (first 5 rows)
+```{r}
+head(activity)
+```
+
+5. Histogram of the total number of steps taken each day
+```{r}
+hist(activity$steps)
+```
+
+## What is mean total number of steps taken per day?
+6. Mean of steps per day
+```{r}
+mean(activity$steps, na.rm=TRUE)
+```
+7. Median of steps per day
+```{r}
+median(activity$steps, na.rm=TRUE)
+```
+## What is the average daily activity pattern?
+
+
+
+## Imputing missing values
+
+
+
+## Are there differences in activity patterns between weekdays and weekends?
